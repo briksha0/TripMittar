@@ -7,9 +7,9 @@ export async function initDB() {
     try {
       // Create DB if not exists (using a standalone connection first)
       const connection = await mysql.createConnection({
-        host: process.env.DB_HOST || "localhost",
-        user: process.env.DB_USER || "root",
-        password: process.env.DB_PASS || "",
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASS,
       });
 
       await connection.query(`CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME}\``);
