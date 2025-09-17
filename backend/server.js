@@ -28,13 +28,13 @@ const razorpay = new Razorpay({
 // ✅ Allowed origins (env or fallback)
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
-  : ["http://localhost:4000", "https://tripmittar-travels.onrender.com"];
+  : ["http://localhost:4000"];
 
 // ✅ CORS middleware
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (e.g. Postman, mobile apps)
+      // Allow requests with no origin (like Postman or server-to-server)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -50,7 +50,7 @@ app.use(
 app.use(express.json());
 app.use(bodyParser.json());
 
-// ✅ Routes
+// ✅ API Routes
 app.use("/api/buses", busRoutes);
 app.use("/api/trains", trainRoutes);
 app.use("/api/auth", authRoutes);
@@ -58,11 +58,11 @@ app.use("/api/hotels", hotelRoutes);
 app.use("/api/hotel-booking", bookingsRoutes);
 app.use("/api/payment", paymentRoutes(razorpay));
 
-// ✅ Serve frontend
+// ✅ Serve frontend static files
 app.use(express.static(path.join(_dirname, "/frontend/dist")));
 
-// ✅ Catch-all route for SPA
-app.get("/:catchAll(.*)", (_, res) => {
+// ✅ Catch-all fallback for SPA routes
+app.use((req, res, next) => {
   res.sendFile(path.join(_dirname, "/frontend", "dist", "index.html"));
 });
 
