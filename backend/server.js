@@ -29,7 +29,7 @@ const razorpay = new Razorpay({
 // Allowed origins for CORS
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
-  : ["http://localhost:4000", "https://tripmittar-travels.onrender.com"];
+  : ["http://localhost:4000"];
 
 // CORS middleware
 app.use(
