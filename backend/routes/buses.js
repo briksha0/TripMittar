@@ -1,10 +1,9 @@
-// routes/buses.js
 import express from "express";
-import { initDB } from "../config/db.js";  // ✅ use named import
+import { initDB } from "../config/db.js";
 
 const router = express.Router();
 
-// 🔹 GET /api/buses/search
+// GET /api/buses/search?from=...&to=...&date=...
 router.get("/search", async (req, res) => {
   const { from, to, date } = req.query;
   if (!from || !to || !date) {
@@ -12,7 +11,9 @@ router.get("/search", async (req, res) => {
   }
 
   try {
-    const db = await initDB(); // get DB connection
+    const db = await initDB();
+
+    // Note: date is currently unused; you can add filtering logic here if needed
     const [rows] = await db.execute(
       "SELECT * FROM buses WHERE from_city LIKE ? AND to_city LIKE ?",
       [`%${from}%`, `%${to}%`]
@@ -25,14 +26,17 @@ router.get("/search", async (req, res) => {
   }
 });
 
-// 🔹 GET /api/buses/:busId/stops
+// GET /api/buses/:busId/stops
 router.get("/:busId/stops", async (req, res) => {
+  const { busId } = req.params;
+
   try {
-    const db = await initDB(); // get DB connection
+    const db = await initDB();
     const [rows] = await db.execute(
-      "SELECT * FROM bus_stops WHERE bus_id=? ORDER BY arrival ASC",
-      [req.params.busId]
+      "SELECT * FROM bus_stops WHERE bus_id = ? ORDER BY arrival ASC",
+      [busId]
     );
+
     res.json({ stops: rows });
   } catch (err) {
     console.error("❌ Stops fetch error:", err.message);
