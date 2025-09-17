@@ -62,7 +62,7 @@ app.use("/api/payment", paymentRoutes(razorpay));
 app.use(express.static(path.join(_dirname, "/frontend/dist")));
 
 // ✅ Catch-all route for SPA
-app.get("*", (_, res) => {
+app.get("/:path*", (_, res) => {
   res.sendFile(path.join(_dirname, "/frontend", "dist", "index.html"));
 });
 
