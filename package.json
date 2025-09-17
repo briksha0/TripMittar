@@ -5,9 +5,9 @@
   "main": "server.js",
   "type": "module",
   "scripts": {   
-    "dev": "nodemon backend/server.js"  ,
+    "dev": "node backend/server.js"  ,
     "build": "npm install && npm run build --prefix frontend && npm run build --prefix frontend",
-    "start":"nodemon backend/server.js"
+    "start":"node backend/server.js"
   },
   "dependencies": {
     "@prisma/client": "^6.13.0",
