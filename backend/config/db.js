@@ -5,28 +5,30 @@ let pool;
 export async function initDB() {
   if (!pool) {
     try {
-      pool = mysql.createPool({
-        host: process.env.DB_HOST ,
-        user: process.env.DB_USER ,
-        password: process.env.DB_PASS ,
-        database: process.env.DB_NAME ,
-        waitForConnections: true,
-        connectionLimit: 10,
-        queueLimit: 0,
-      });
-
-      // Create DB if not exists (use single connection first)
+      // Create DB if not exists (using a standalone connection first)
       const connection = await mysql.createConnection({
         host: process.env.DB_HOST || "localhost",
         user: process.env.DB_USER || "root",
         password: process.env.DB_PASS || "",
       });
-      await connection.query(`CREATE DATABASE IF NOT EXISTS mydb`);
+
+      await connection.query(`CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME}\``);
       await connection.end();
+
+      // Create a connection pool to the database
+      pool = mysql.createPool({
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASS,
+        database: process.env.DB_NAME,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+      });
 
       console.log("✅ Database connected & ensured");
 
-      // Run migrations (tables)
+      // Run migrations (create tables if not exists)
       await pool.query(`
         CREATE TABLE IF NOT EXISTS users (
           id INT AUTO_INCREMENT PRIMARY KEY,
@@ -90,7 +92,8 @@ export async function initDB() {
 
       console.log("✅ Tables ensured");
     } catch (err) {
-      console.error("❌ Database initialization failed:", err.message);
+      // Log full error details
+      console.error("❌ Database initialization failed:", err);
       process.exit(1);
     }
   }
