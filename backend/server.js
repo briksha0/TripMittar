@@ -25,12 +25,16 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// ✅ Allowed origins
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",").map(o => o.trim()) || [];
+// ✅ Allowed origins (env or fallback)
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
+  : ["http://localhost:4000", "https://tripmittar-travels.onrender.com"];
 
+// ✅ CORS middleware
 app.use(
   cors({
     origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. Postman, mobile apps)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -42,7 +46,7 @@ app.use(
   })
 );
 
-
+// ✅ Middleware
 app.use(express.json());
 app.use(bodyParser.json());
 
@@ -58,7 +62,7 @@ app.use("/api/payment", paymentRoutes(razorpay));
 app.use(express.static(path.join(_dirname, "/frontend/dist")));
 
 // ✅ Catch-all route for SPA
-app.get('/*rest', (_, res) => {
+app.get("/*", (_, res) => {
   res.sendFile(path.join(_dirname, "/frontend", "dist", "index.html"));
 });
 
