@@ -12,20 +12,19 @@ import hotelRoutes from "./routes/hotels.js";
 import bookingsRoutes from "./routes/bookings.js";
 import trainRoutes from "./routes/trains.js";
 
-import { initDB } from "./config/db.js"; // Your DB init function
+import { initDB } from "./config/db.js";
 
-dotenv.config();
+dotenv.config({ debug: true }); // Enable dotenv debug logs
 
 const _dirname = path.resolve();
 const app = express();
 const port = process.env.PORT || 5000;
 
 // Initialize DB before starting server
-(async () => {
-  try {
-    await initDB();
-    console.log("✅ Database initialized");
-
+initDB()
+  .then(() => {
+    console.log("✅ Database initialized successfully");
+    
     // Razorpay instance
     const razorpay = new Razorpay({
       key_id: process.env.RAZORPAY_KEY_ID,
@@ -34,7 +33,7 @@ const port = process.env.PORT || 5000;
 
     // Allowed origins (env or fallback)
     const allowedOrigins = process.env.ALLOWED_ORIGINS
-      ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+      ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
       : ["http://localhost:4000", "https://tripmittar-travels.onrender.com"];
 
     // CORS middleware
@@ -56,7 +55,7 @@ const port = process.env.PORT || 5000;
     app.use(express.json());
     app.use(bodyParser.json());
 
-    // API routes
+    // API Routes
     app.use("/api/buses", busRoutes);
     app.use("/api/trains", trainRoutes);
     app.use("/api/auth", authRoutes);
@@ -67,8 +66,8 @@ const port = process.env.PORT || 5000;
     // Serve frontend static files
     app.use(express.static(path.join(_dirname, "/frontend/dist")));
 
-    // Catch-all fallback for SPA routes (all unmatched requests)
-    app.use((req, res, next) => {
+    // Catch-all fallback for SPA routes
+    app.use((req, res) => {
       res.sendFile(path.join(_dirname, "/frontend", "dist", "index.html"));
     });
 
@@ -76,8 +75,8 @@ const port = process.env.PORT || 5000;
     app.listen(port, "0.0.0.0", () => {
       console.log(`🚀 Server running at http://localhost:${port}`);
     });
-  } catch (err) {
-    console.error("❌ Failed to initialize app:", err);
+  })
+  .catch((err) => {
+    console.error("❌ Failed to initialize database:", err);
     process.exit(1);
-  }
-})();
+  });
