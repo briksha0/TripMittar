@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+  <!-- Background circle -->
+  <circle cx="400" cy="400" r="360" fill="#1367A8"/>
+  
+  <!-- Text -->
+  <g fill="#0B3555" font-family="Montserrat, Inter, Helvetica, Arial, sans-serif" font-weight="800" text-anchor="middle">
+    <text x="400" y="355" font-size="150" letter-spacing="1">Trip</text>
+    <text x="400" y="470" font-size="150" letter-spacing="1">Mittar</text>
+  </g>
+  
+  <!-- Wave under the text -->
+  <path d="M220 540
+           C 300 520, 340 560, 400 560
+           C 460 560, 500 520, 580 540
+           C 520 590, 460 600, 400 600
+           C 340 600, 280 590, 220 540 Z"
+        fill="#0B3555"/>
+</svg>
