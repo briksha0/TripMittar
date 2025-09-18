@@ -1,10 +1,10 @@
+// backend/server.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import Razorpay from "razorpay";
 import path from "path";
-import { fileURLToPath } from "url";
 
 import paymentRoutes from "./routes/payment.js";
 import busRoutes from "./routes/buses.js";
@@ -13,33 +13,28 @@ import hotelRoutes from "./routes/hotels.js";
 import bookingsRoutes from "./routes/bookings.js";
 import trainRoutes from "./routes/trains.js";
 
-import { initDB } from "./config/db.js";
-
 dotenv.config();
 
-// ✅ Setup __dirname in ES module
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// ✅ Initialize express app
+const _dirname = path.resolve();
 const app = express();
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 5000;
 
-// ✅ Initialize Razorpay
+// ✅ Razorpay instance
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// ✅ Parse allowed origins from env
+// ✅ Allowed origins (env or fallback)
 const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map(origin => origin.trim())
-  : [];
-console.log("✅ Allowed origins:", allowedOrigins);
+  ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
+  : ["http://localhost:4000", "https://tripmittar-travels.onrender.com"];
+
 // ✅ CORS middleware
 app.use(
   cors({
     origin: (origin, callback) => {
+      // Allow requests with no origin (like Postman or server-to-server)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -55,8 +50,6 @@ app.use(
 app.use(express.json());
 app.use(bodyParser.json());
 
-// ✅ Initialize Database
-
 // ✅ API Routes
 app.use("/api/buses", busRoutes);
 app.use("/api/trains", trainRoutes);
@@ -66,11 +59,11 @@ app.use("/api/hotel-booking", bookingsRoutes);
 app.use("/api/payment", paymentRoutes(razorpay));
 
 // ✅ Serve frontend static files
-app.use(express.static(path.join(__dirname, "../frontend/dist")));
+app.use(express.static(path.join(_dirname, "/frontend/dist")));
 
 // ✅ Catch-all fallback for SPA routes
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+app.use((req, res, next) => {
+  res.sendFile(path.join(_dirname, "/frontend", "dist", "index.html"));
 });
 
 // ✅ Start server
