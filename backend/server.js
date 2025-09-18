@@ -1,4 +1,3 @@
-// backend/server.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -12,6 +11,7 @@ import authRoutes from "./routes/auth.js";
 import hotelRoutes from "./routes/hotels.js";
 import bookingsRoutes from "./routes/bookings.js";
 import trainRoutes from "./routes/trains.js";
+import { initDB } from "./config/db.js"; // ✅ Make sure this is imported
 
 dotenv.config();
 
@@ -19,22 +19,26 @@ const _dirname = path.resolve();
 const app = express();
 const port = process.env.PORT || 5000;
 
+// ✅ Initialize Database
+initDB();
+
 // ✅ Razorpay instance
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// ✅ Allowed origins (env or fallback)
+// ✅ Allowed origins (from env or fallback list)
 const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
-  : ["http://localhost:4000", "https://tripmittar-travels.onrender.com"];
+  ? process.env.ALLOWED_ORIGINS.split(",").map(origin => origin.trim())
+  : [
+      "http://localhost:4000"
+    ];
 
-// ✅ CORS middleware
+// ✅ CORS Middleware
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like Postman or server-to-server)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
