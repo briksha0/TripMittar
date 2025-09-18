@@ -56,12 +56,6 @@ app.use(express.json());
 app.use(bodyParser.json());
 
 // ✅ Initialize Database
-initDB().then(() => {
-  console.log("✅ Database connected");
-}).catch((err) => {
-  console.error("❌ Database initialization failed:", err);
-  process.exit(1);
-});
 
 // ✅ API Routes
 app.use("/api/buses", busRoutes);
