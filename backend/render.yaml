@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: tripmittar-backend
+    env: node
+    buildCommand: "npm install"
+    startCommand: "npm start"
+    "seed": "node seed.js"
+
+    plan: free
+    envVars:
+      - key: PORT
+        value: 5000

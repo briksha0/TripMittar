@@ -1,72 +1,75 @@
-// backend/server.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import bodyParser from "body-parser";
 import Razorpay from "razorpay";
-import path from "path";
+import { initDB } from "./config/db.js";
 
-import paymentRoutes from "./routes/payment.js";
-import busRoutes from "./routes/buses.js";
+// Routes
 import authRoutes from "./routes/auth.js";
+import busRoutes from "./routes/buses.js";
+import trainRoutes from "./routes/trains.js";
 import hotelRoutes from "./routes/hotels.js";
 import bookingsRoutes from "./routes/bookings.js";
-import trainRoutes from "./routes/trains.js";
+import paymentRoutes from "./routes/payment.js";
 
 dotenv.config();
 
-const _dirname = path.resolve();
 const app = express();
-const port = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000;
 
-// ✅ Razorpay instance
+/* ================= RAZORPAY ================= */
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
+  key_id: process.env.RAZORPAY_KEY_ID || "",
+  key_secret: process.env.RAZORPAY_KEY_SECRET || "",
 });
 
-// ✅ Allowed origins (env or fallback)
+/* ================= CORS ================= */
 const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
-  : ["http://localhost:4000", "https://tripmittar-travels.onrender.com"];
+  ? process.env.ALLOWED_ORIGINS.split(",")
+  : ["http://localhost:5173", "http://localhost:3000", "http://localhost:4173"];
 
-// ✅ CORS middleware
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like Postman or server-to-server)
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.warn(`❌ CORS blocked request from: ${origin}`);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
 
-// ✅ Middleware
-app.use(express.json());
-app.use(bodyParser.json());
+/* ================= MIDDLEWARE ================= */
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
 
-// ✅ API Routes
+/* ================= ROUTES ================= */
+app.use("/api/auth", authRoutes);
 app.use("/api/buses", busRoutes);
 app.use("/api/trains", trainRoutes);
-app.use("/api/auth", authRoutes);
 app.use("/api/hotels", hotelRoutes);
 app.use("/api/hotel-booking", bookingsRoutes);
-app.use("/api/payment", paymentRoutes(razorpay));
 
-// ✅ Serve frontend static files
-app.use(express.static(path.join(_dirname, "/frontend/dist")));
+// Fix: Ensure paymentRoutes is correctly initialized as a middleware function
+if (typeof paymentRoutes === 'function') {
+    app.use("/api/payment", paymentRoutes(razorpay));
+} else {
+    console.warn("⚠️ paymentRoutes is not a function. Check your export in payment.js");
+}
 
-// ✅ Catch-all fallback for SPA routes
-app.use((req, res, next) => {
-  res.sendFile(path.join(_dirname, "/frontend", "dist", "index.html"));
-});
+/* ================= STARTUP ================= */
+const startServer = async () => {
+  try {
+    await initDB();
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error("❌ Startup Error:", error.message);
+    process.exit(1);
+  }
+};
 
-// ✅ Start server
-app.listen(port, "0.0.0.0", () => {
-  console.log(`🚀 Server running at http://localhost:${port}`);
-});
+startServer();

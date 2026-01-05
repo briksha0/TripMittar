@@ -1,134 +1,175 @@
-import React, { useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { User, IdCard, Lock, Eye, EyeOff } from "lucide-react";
 
-function Signup() {
-  const [fullname, setFullname] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import api from "../../api/axios"; // Use your configured axios instance
+import { motion, AnimatePresence } from "framer-motion";
+import { User, IdCard, Lock, Eye, EyeOff, UserPlus, AlertCircle, CheckCircle2 } from "lucide-react";
+
+export default function Signup() {
+  const [form, setForm] = useState({ fullname: "", username: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSignUp = async (e) => {
     e.preventDefault();
-    try {
-      const response = await axios.post(`${apiBaseUrl}/api/auth/signup`, {
-        fullname,
-        username,
-        password,
-      });
+    setLoading(true);
+    setMessage("");
 
-      setMessage(response.data.message);
+    try {
+      const response = await api.post("/api/auth/signup", form);
+
+      setMessage("✅ " + response.data.message);
       setIsSuccess(true);
 
+      // Smooth redirect after success
       setTimeout(() => {
         navigate("/signin");
-      }, 1500);
+      }, 2000);
     } catch (error) {
-      setMessage(error.response?.data?.message || "❌ An error occurred.");
+      setMessage(error.response?.data?.message || "❌ Signup failed. Please try again.");
       setIsSuccess(false);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="mt-10 flex items-center justify-center min-h-screen px-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 30 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-md p-8 bg-white/20 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30"
-      >
-        <h2 className="text-3xl font-extrabold text-center text-white drop-shadow mb-6">
-          📝 Create Account
-        </h2>
+    <div className="flex items-center justify-center min-h-screen px-4 bg-[#050816] relative overflow-hidden">
+      {/* Background Decorative Elements */}
+      <div className="absolute top-[-10%] right-[-10%] w-72 h-72 bg-indigo-600/20 rounded-full blur-[120px]" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-blue-600/20 rounded-full blur-[120px]" />
 
-        {message && (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="w-full max-w-md p-8 bg-white/[0.03] backdrop-blur-2xl rounded-[2.5rem] shadow-2xl border border-white/10 relative z-10"
+      >
+        {/* Header */}
+        <div className="text-center mb-8">
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`mb-4 p-3 text-sm rounded-lg ${
-              isSuccess ? "text-green-700 bg-green-100" : "text-red-700 bg-red-100"
-            }`}
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20"
           >
-            {message}
+            <UserPlus className="text-white w-8 h-8" />
           </motion.div>
-        )}
+          <h2 className="text-3xl font-bold text-white tracking-tight">Create Account</h2>
+          <p className="text-gray-400 text-sm mt-2">Join TripMittar for your next adventure</p>
+        </div>
+
+        {/* Message Alert */}
+        <AnimatePresence mode="wait">
+          {message && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className={`mb-6 flex items-center gap-2 p-3 rounded-xl border text-xs font-medium ${
+                isSuccess 
+                  ? "bg-green-500/10 border-green-500/50 text-green-400" 
+                  : "bg-red-500/10 border-red-500/50 text-red-400"
+              }`}
+            >
+              {isSuccess ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+              {message}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <form onSubmit={handleSignUp} className="space-y-5">
           {/* Full Name */}
-          <div className="relative">
-            <IdCard className="absolute left-3 top-3.5 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              value={fullname}
-              onChange={(e) => setFullname(e.target.value)}
-              autoComplete="name"
-              className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/80 border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-              placeholder="Enter your full name"
-              required
-            />
+          <div className="space-y-1.5">
+            <label className="text-gray-300 text-xs font-semibold ml-1">Full Name</label>
+            <div className="relative group">
+              <IdCard className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 group-focus-within:text-indigo-400 transition-colors" />
+              <input
+                type="text"
+                name="fullname"
+                value={form.fullname}
+                onChange={handleChange}
+                placeholder="John Doe"
+                required
+                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white/[0.05] border border-white/10 text-white placeholder:text-gray-600 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all"
+              />
+            </div>
           </div>
 
-          {/* Username */}
-          <div className="relative">
-            <User className="absolute left-3 top-3.5 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              autoComplete="username"
-              className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/80 border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-              placeholder="Choose a username"
-              required
-            />
+          {/* Email / Username */}
+          <div className="space-y-1.5">
+            <label className="text-gray-300 text-xs font-semibold ml-1">Email Address</label>
+            <div className="relative group">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 group-focus-within:text-indigo-400 transition-colors" />
+              <input
+                type="email"
+                name="username"
+                value={form.username}
+                onChange={handleChange}
+                placeholder="name@example.com"
+                required
+                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white/[0.05] border border-white/10 text-white placeholder:text-gray-600 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all"
+              />
+            </div>
           </div>
 
           {/* Password */}
-          <div className="relative">
-            <Lock className="absolute left-3 top-3.5 text-gray-400 w-5 h-5" />
-            <input
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-              className="w-full pl-10 pr-10 py-2 rounded-lg bg-white/80 border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-              placeholder="Enter your password"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-3.5 text-gray-500 hover:text-gray-700"
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
+          <div className="space-y-1.5">
+            <label className="text-gray-300 text-xs font-semibold ml-1">Password</label>
+            <div className="relative group">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 group-focus-within:text-indigo-400 transition-colors" />
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                placeholder="••••••••"
+                required
+                className="w-full pl-12 pr-12 py-3.5 rounded-xl bg-white/[0.05] border border-white/10 text-white placeholder:text-gray-600 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-2 rounded-lg font-semibold shadow-md hover:from-blue-600 hover:to-indigo-700 transition"
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            disabled={loading || isSuccess}
+            className="w-full py-4 mt-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-sm shadow-[0_10px_20px_rgba(79,70,229,0.3)] hover:shadow-[0_10px_20px_rgba(79,70,229,0.5)] transition-all disabled:opacity-50 flex items-center justify-center"
           >
-            Sign Up
-          </button>
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              "Create Account"
+            )}
+          </motion.button>
         </form>
 
-        {/* Redirect to Login */}
-        <p className="text-sm text-center text-gray-200 mt-5">
-          Already have an account?{" "}
-          <a href="/signin" className="text-white font-semibold hover:underline">
-            Sign in here
-          </a>
-        </p>
+        {/* Footer */}
+        <div className="mt-8 text-center border-t border-white/5 pt-6">
+          <p className="text-gray-400 text-sm">
+            Already have an account?{" "}
+            <Link
+              to="/signin"
+              className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors"
+            >
+              Sign In
+            </Link>
+          </p>
+        </div>
       </motion.div>
     </div>
   );
 }
-
-export default Signup;
