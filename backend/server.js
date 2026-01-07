@@ -26,7 +26,7 @@ const razorpay = new Razorpay({
 /* ================= CORS ================= */
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",")
-  : ["http://localhost:5173", "http://localhost:3000", "http://localhost:4173"];
+  : ["http://localhost:4000", "http://localhost:3000", "http://localhost:4173"];
 
 app.use(cors({
   origin: (origin, callback) => {
