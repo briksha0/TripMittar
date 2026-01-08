@@ -14,7 +14,7 @@ export async function initDB() {
       const dbHost = process.env.DB_HOST || "localhost";
       const dbUser = process.env.DB_USER || "postgres";
       const dbPass = process.env.DB_PASS || "root"; // matches your .env
-      const dbName = process.env.DB_NAME || "tripmantr_postgresql_name";
+      const dbName = process.env.DB_NAME || "tripmanttar_db";
       const dbPort = process.env.DB_PORT || 5432;
 
       /* 1️⃣ Ensure database exists (Connecting to default 'postgres' db first) */
